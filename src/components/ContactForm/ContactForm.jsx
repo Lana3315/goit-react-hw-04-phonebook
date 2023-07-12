@@ -1,30 +1,39 @@
-import React, { Component } from 'react';
+import { useState } from "react";
 import PropTypes from 'prop-types';
-export class ContactForm extends Component {
-  state = {
-    name: '',
-    number: '',
-  };
+
+
+export default function ContactForm({ addContact })
+{
+  const [name, setName] = useState('');
+   const [number, setNumber] = useState('');
    
-  handleChange = ({ target: { name, value } }) => {
-    this.setState({ [name]: value });
+
+  const handleChange = (event) => {
+  const {name , value} = event.target
+    switch (name) {
+      case 'name':
+        setName(value)
+        break;
+      case 'number':
+        setNumber(value)
+        break;
+      
+      default:
+        return;
+    }
+  
   };
 
-  handleSubmit = e => {
+  const handleSubmit = e => {
     e.preventDefault();
+    addContact({ name, number });
 
-    const { addContact } = this.props;
-
-    addContact({ ...this.state });
-
-    this.setState({ name: '', number: '' });
+    setName('');
+    setNumber('');
   };
-
-  render() {
-    const { name, number } = this.state;
-
     return (
-      <form onSubmit={this.handleSubmit} autoComplete="off">
+      <form onSubmit={handleSubmit} autoComplete="off">
+    
         <label>
           Name
           <input
@@ -35,7 +44,7 @@ export class ContactForm extends Component {
             required
             placeholder="Enter name"
             value={name}
-            onChange={this.handleChange}
+            onChange={handleChange}
 
           />
         </label>
@@ -49,7 +58,7 @@ export class ContactForm extends Component {
             required
             placeholder="Enter number"
             value={number}
-            onChange={this.handleChange}
+            onChange={handleChange}
           />
         </label>
         <button type="submit" disabled={!name || !number}>
@@ -57,9 +66,8 @@ export class ContactForm extends Component {
         </button>
       </form>
     );
-  }
 }
+
 ContactForm.propTypes = {
   addContact: PropTypes.func.isRequired,
 };
-export default ContactForm;

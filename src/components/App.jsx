@@ -1,86 +1,67 @@
-import React, {Component} from 'react';
+import { useState, useEffect } from 'react';
 import { nanoid } from 'nanoid';
 
-import { saveStorage , loadStorage} from './Utils/LocalStorage';
+import { saveStorage, loadStorage } from './Utils/LocalStorage';
+
 import { Section } from './Section/Section';
-import { ContactForm } from './ContactForm/ContactForm';
+import  ContactForm  from './ContactForm/ContactForm';
 import { Filter } from './Filter/Filter';
 import { ContactList } from './ContactList/ContactList';
+
 const STORAGE_KEY = 'contacts';
-export class App extends Component {
 
+export const App = () => {
+  const [contacts, setContacts] = useState(() => {
+    return loadStorage(STORAGE_KEY) ?? [];
+  });
+  const [filter, setFilter] = useState('');
 
-  state = {
-    contacts: [],
-    filter: '',
-  };
-  componentDidMount() {
-    const localStorageContacts = loadStorage(STORAGE_KEY);
+  useEffect(() => {
+    saveStorage(STORAGE_KEY, contacts);
+  }, [contacts]);
 
-    if (localStorageContacts) this.setState({ contacts: localStorageContacts });
-  }
-
-  componentDidUpdate(_, prevState) {
-    const { contacts } = this.state;
-
-    if (prevState.contacts !== contacts) {
-      saveStorage(STORAGE_KEY, contacts);
-    }
-  }
-  addContact = data => {
-    const { contacts } = this.state;
+  const addContact = data => {
     const newContact = {
       id: nanoid(),
       ...data,
     };
-    
-    contacts.some(({ name }) => name.toLowerCase() === data.name.toLowerCase())
+
+    contacts.some(({ name }) => name === data.name)
       ? alert(`${data.name} is already in contacts`)
-      : this.setState(prevState => ({
-        contacts: [...prevState.contacts, newContact],
-       
-      }));
+      : setContacts(prevContacts => [...prevContacts, newContact]);
   };
 
-  deleteContact = userId => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== userId),
-    }));
+  const deleteContact = userId => {
+    setContacts(prevContacts =>
+      prevContacts.filter(contact => contact.id !== userId)
+    );
   };
 
-  handleChangeFilter = ({ currentTarget: { value } }) => {
-    this.setState({ filter: value });
+  const handleChangeFilter = ({ currentTarget: { value } }) => {
+    setFilter(value);
   };
 
-  getFilterContacts = () => {
-    const { filter, contacts } = this.state;
+  const getFilterContacts = () => {
     const FilterlowerCase = filter.toLowerCase();
     return contacts.filter(({ name }) =>
       name.toLowerCase().includes(FilterlowerCase)
     );
   };
 
-  render() {
-    
-    
-    const { filter } = this.state;
+  return (
+    <>
+      <Section title="Phonebook">
+        <ContactForm addContact={addContact} />
+      </Section>
+      <Section title="Contacts">
+        <Filter value={filter} handleChangeFilter={handleChangeFilter} />
 
-    return (
-      <>
-        <Section title="Phonebook">
-          <ContactForm addContact={this.addContact} />
-        </Section>
-        <Section title="Contacts">
-          <Filter value={filter} handleChangeFilter={this.handleChangeFilter} />
+        <ContactList
+          contacts={getFilterContacts()}
+          deleteContact={deleteContact}
+        />
+      </Section>
+    </>
+  );
+};
 
-          <ContactList
-            contacts={this.getFilterContacts()}
-            deleteContact={this.deleteContact}
-          />
-        </Section>
-      </>
-    );
-  }
-}
-
-export default App;
