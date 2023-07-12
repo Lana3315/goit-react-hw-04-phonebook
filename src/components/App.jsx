@@ -26,7 +26,7 @@ export const App = () => {
       ...data,
     };
 
-    contacts.some(({ name }) => name === data.name)
+    contacts.some(({ name }) => name.toLowerCase() === data.name.toLowerCase())
       ? alert(`${data.name} is already in contacts`)
       : setContacts(prevContacts => [...prevContacts, newContact]);
   };
